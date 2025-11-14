@@ -13,59 +13,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
   button.addEventListener("click", handleCopy);
 
+  // single input handler that supports Normal OR Express
   gbInput.addEventListener("input", function handleCalculate() {
+    // prevent both being checked
+    if (Normal.checked && Express.checked) {
+      // You can replace alert with a nicer UI message if you want
+      alert("Please check only one: MTN or Airtel Tigo");
+      packageList.innerHTML = "";
+      priceList.innerHTML = "";
+      totalPriceElem.innerText = "";
+      return;
+    }
+
+    const inputValue = gbInput.value.trim();
+    if (!inputValue) {
+      packageList.innerHTML = "";
+      priceList.innerHTML = "";
+      totalPriceElem.innerText = "";
+      return;
+    }
+
+    const gbValues = inputValue.split("+").map((s) => s.trim()).filter(Boolean);
+
     if (Normal.checked) {
-      const inputValue = gbInput.value;
-      const gbValues = inputValue.split("+");
       const totalPrice = calculateTotal(gbValues);
 
       packageList.innerHTML = gbValues
-        .map((gb) => `<li class="list-group-item">${gb.trim()}GB</li>`)
+        .map((gb) => `<li class="list-group-item">${gb.replace(/GB/i, "")}GB</li>`)
         .join("");
+
       priceList.innerHTML = gbValues
         .map(
           (gb) =>
-            `<li class="list-group-item">${
-              prices[gb.trim().replace("GB", "")] || 0).toFixed(2)
-            } cedis</li>`
+            `<li class="list-group-item">${(prices[gb.replace(/GB/i, "")] || 0).toFixed(2)} cedis</li>`
         )
         .join("");
-      totalPriceElem.innerHTML = `Total Price: ${totalPrice} cedis`;
 
-      calculateTotal(gbArray);
-    }
-
-    if (Normal.checked && Express.checked) {
-      write("check only one *").style.Color = "red";
-    } else {
-    }
-  });
-
-  //Express condition
-
-  gbInput.addEventListener("input", function handleCalculateExpress() {
-    //gbInput.addEventListener('input', handleCalculate);
-
-    if (Express.checked) {
-      const inputValue = gbInput.value;
-      const gbValues = inputValue.split("+");
+      totalPriceElem.innerHTML = `Total Price: ${totalPrice.toFixed(2)} cedis`;
+    } else if (Express.checked) {
       const totalPrice = calculateTotalExpress(gbValues);
 
       packageList.innerHTML = gbValues
-        .map((gb) => `<li class="list-group-item">${gb.trim()}GB</li>`)
+        .map((gb) => `<li class="list-group-item">${gb.replace(/GB/i, "")}GB</li>`)
         .join("");
+
       priceList.innerHTML = gbValues
         .map(
           (gb) =>
-            `<li class="list-group-item">${
-              Eprices[gb.trim().replace("GB", "")] || 0).toFixed(2)
-            } cedis</li>`
+            `<li class="list-group-item">${(Eprices[gb.replace(/GB/i, "")] || 0).toFixed(2)} cedis</li>`
         )
         .join("");
+
       totalPriceElem.innerHTML = `Total Price: ${totalPrice.toFixed(2)} cedis`;
-
-
-      calculateTotalExpress(gbArray);
+    } else {
+      // no checkbox selected — clear outputs
+      packageList.innerHTML = "";
+      priceList.innerHTML = "";
+      totalPriceElem.innerText = "";
     }
   });
 
@@ -81,29 +85,29 @@ document.addEventListener("DOMContentLoaded", () => {
   function calculateTotal(gbArray) {
     let totalPrice = 0;
     gbArray.forEach((gb) => {
-      const packagePrice = prices[gb.trim().replace("GB", "")];
-      if (packagePrice) {
+      const key = gb.replace(/GB/i, "").trim();
+      const packagePrice = prices[key];
+      if (packagePrice !== undefined) {
         totalPrice += packagePrice;
       } else {
-        console.error(`Package not found: ${gb.trim()}GB`);
+        console.error(`Package not found: ${key}GB`);
       }
     });
-     return parseFloat(totalPrice.toFixed(2));
+    return totalPrice; // keep numeric, caller formats with toFixed(2)
   }
-
-  ///hanling express prices here ........
 
   function calculateTotalExpress(gbArray) {
     let totalPrice = 0;
     gbArray.forEach((gb) => {
-      const packagePrice = Eprices[gb.trim().replace("GB", "")];
-      if (packagePrice) {
+      const key = gb.replace(/GB/i, "").trim();
+      const packagePrice = Eprices[key];
+      if (packagePrice !== undefined) {
         totalPrice += packagePrice;
       } else {
-        console.error(`Package not found: ${gb.trim()}GB`);
+        console.error(`Package not found: ${key}GB`);
       }
     });
-     return parseFloat(totalPrice.toFixed(2));
+    return totalPrice;
   }
 
   function handleCopy() {
