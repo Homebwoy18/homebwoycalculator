@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const gbInput = document.getElementById("input");
   const packageList = document.getElementById("package-list");
+  const priceList = document.getElementById("price-list");
   const totalPriceElem = document.getElementById("total-price");
   const button = document.getElementById("btn");
   const greeting = document.getElementById("greeting");
@@ -24,61 +25,77 @@ document.addEventListener("DOMContentLoaded", () => {
   const prices = { 1: 4.90, 2: 9.5, 3: 14.2, 4: 18.5, 5: 23, 6: 28, 7: 32, 8: 38, 9: 42, 10: 43.5, 15: 62.5, 20: 85, 25: 105, 30: 125, 40: 162, 50: 205, 100: 390 };
   const Eprices = { 1: 4.5, 2: 8.5, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 9: 35, 10: 38, 11: 45, 12: 49, 13: 55, 14: 58, 15: 60, 20: 81, 25: 101, 30: 129, 40: 167, 50: 185, 100: 395 };
 
+  let mtnCounter = 1;
+  let tigoCounter = 1;
+  let mtnPackages = [];
+  let tigoPackages = [];
+
   function handleCalculate() {
     const inputValue = gbInput.value.trim();
     if (!inputValue) {
       packageList.innerHTML = "";
+      priceList.innerHTML = "";
       totalPriceElem.innerText = "";
+      mtnPackages = [];
+      tigoPackages = [];
+      mtnCounter = 1;
+      tigoCounter = 1;
       return;
     }
 
     const gbValues = inputValue.split("+").map(s => s.trim()).filter(Boolean);
 
     let packageHTML = "";
+    let priceHTML = "";
     let total = 0;
-    let counter = 1;
 
+    // MTN Calculation
     if (Normal.checked) {
-      gbValues.forEach(gb => {
+      const newMtn = gbValues.filter(gb => !mtnPackages.includes(gb));
+      newMtn.forEach(gb => {
         const key = gb.replace(/GB/i, "").trim();
         const price = prices[key] || 0;
-        packageHTML += `<li class="package-row"><span>${counter}. [MTN] ${key}GB</span><span>${price.toFixed(2)} cedis</span></li>`;
+        packageHTML += `<li class="package-row"><span>${mtnCounter}. ${key}GB</span></li>`;
+        priceHTML += `<li class="package-row"><span>${price.toFixed(2)} cedis</span></li>`;
         total += price;
-        counter++;
+        mtnPackages.push(gb);
+        mtnCounter++;
       });
     }
 
+    // Airtel Tigo Calculation
     if (Express.checked) {
-      gbValues.forEach(gb => {
+      const newTigo = gbValues.filter(gb => !tigoPackages.includes(gb));
+      newTigo.forEach(gb => {
         const key = gb.replace(/GB/i, "").trim();
         const price = Eprices[key] || 0;
-        packageHTML += `<li class="package-row"><span>${counter}. [Airtel Tigo] ${key}GB</span><span>${price.toFixed(2)} cedis</span></li>`;
+        packageHTML += `<li class="package-row"><span>${tigoCounter}. ${key}GB</span></li>`;
+        priceHTML += `<li class="package-row"><span>${price.toFixed(2)} cedis</span></li>`;
         total += price;
-        counter++;
+        tigoPackages.push(gb);
+        tigoCounter++;
       });
     }
 
     packageList.innerHTML = packageHTML;
+    priceList.innerHTML = priceHTML;
     totalPriceElem.innerHTML = `Total Price: ${total.toFixed(2)} cedis`;
   }
 
   function handleCopy() {
-    const packageItems = Array.from(packageList.children).map(item => {
-      const spans = item.querySelectorAll("span");
-      return [spans[0].innerText.trim(), spans[1].innerText.trim()];
+    const packageItems = Array.from(packageList.children).map((item, index) => {
+      const pkg = item.innerText.trim();
+      const price = priceList.children[index].innerText.trim();
+      return { pkg, price };
     });
 
     const totalPriceText = totalPriceElem.innerText;
     const currentDate = dateElem.innerText;
 
-    // calculate max length for proper spacing
-    let maxLength = 0;
-    packageItems.forEach(([pkg, price]) => {
-      if(pkg.length > maxLength) maxLength = pkg.length;
-    });
-
+    let maxLength = Math.max(...packageItems.map(p => p.pkg.length));
     let outputText = `${currentDate}\n\nPackages${" ".repeat(maxLength - 8)}Prices\n`;
-    packageItems.forEach(([pkg, price]) => {
+
+    packageItems.forEach(({ pkg, price }) => {
       const spaces = " ".repeat(maxLength - pkg.length + 4);
       outputText += `${pkg}${spaces}${price}\n`;
     });
