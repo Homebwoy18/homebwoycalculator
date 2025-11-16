@@ -38,9 +38,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (Normal.checked) {
       const totalPrice = calculateTotal(gbValues);
 
-      packageList.innerHTML = gbValues
-        .map((gb) => `<li class="list-group-item">${gb.replace(/GB/i, "")}GB</li>`)
-        .join("");
+        packageList.innerHTML = gbValues
+      .map((gb, index) => 
+        `<li class="list-group-item number-item"><span class="num">${index + 1}.</span> ${gb.replace(/GB/i, "")}GB</li>`
+      )
+      .join("");
 
       priceList.innerHTML = gbValues
         .map(
@@ -52,10 +54,13 @@ document.addEventListener("DOMContentLoaded", () => {
       totalPriceElem.innerHTML = `Total Price: ${totalPrice.toFixed(2)} cedis`;
     } else if (Express.checked) {
       const totalPrice = calculateTotalExpress(gbValues);
+    
+       packageList.innerHTML = gbValues
+      .map((gb, index) => 
+        `<li class="list-group-item number-item"><span class="num">${index + 1}.</span> ${gb.replace(/GB/i, "")}GB</li>`
+      )
+      .join("");
 
-      packageList.innerHTML = gbValues
-        .map((gb) => `<li class="list-group-item">${gb.replace(/GB/i, "")}GB</li>`)
-        .join("");
 
       priceList.innerHTML = gbValues
         .map(
