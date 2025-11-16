@@ -11,27 +11,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const Normal = document.getElementById("Normal");
   const Express = document.getElementById("Express");
 
-  let allPackages = []; // store all package objects
+  let allPackages = []; // array to store current packages
 
   button.addEventListener("click", handleCopy);
 
   gbInput.addEventListener("input", () => {
     const inputValue = gbInput.value.trim();
-    if (!inputValue) return;
+    if (!inputValue) {
+      allPackages = [];
+      renderPackages();
+      return;
+    }
 
     const gbValues = inputValue.split("+").map(s => s.trim()).filter(Boolean);
 
     // Determine which operator is checked
-    if (!Normal.checked && !Express.checked) return;
+    if (!Normal.checked && !Express.checked) {
+      allPackages = [];
+      renderPackages();
+      return;
+    }
 
     const operator = Normal.checked ? "MTN" : "Airtel Tigo";
     const pricesObj = Normal.checked ? prices : Eprices;
 
-    // For each GB value, add a package (allow duplicates)
-    gbValues.forEach(gb => {
+    // rebuild allPackages from scratch for current input
+    allPackages = gbValues.map(gb => {
       const key = gb.replace(/GB/i, "").trim();
       const price = pricesObj[key] || 0;
-      allPackages.push({ value: key, operator, price });
+      return { value: key, operator, price };
     });
 
     renderPackages();
@@ -53,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .map(p => `<li class="list-group-item">${p.price.toFixed(2)} cedis</li>`).join("");
 
     const total = sorted.reduce((sum, p) => sum + p.price, 0);
-    totalPriceElem.innerHTML = `Total Price: ${total.toFixed(2)} cedis`;
+    totalPriceElem.innerHTML = sorted.length ? `Total Price: ${total.toFixed(2)} cedis` : '';
   }
 
   function handleCopy() {
@@ -62,10 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return a.operator === "MTN" ? -1 : 1;
     });
 
+    if (!sorted.length) return;
+
     let output = `${dateElem.innerText}\n\nPackages           Prices\n`;
 
     sorted.forEach((p, i) => {
-      const pkgStr = `${i+1}. ${p.value}GB (${p.operator})`.padEnd(20, " ");
+      const pkgStr = `${i+1}. ${p.value}GB (${p.operator})`.padEnd(25, " ");
       const priceStr = `${p.price.toFixed(2)} cedis`;
       output += `${pkgStr} ${priceStr}\n`;
     });
